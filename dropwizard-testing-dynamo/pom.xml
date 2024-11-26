@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.logicalbias</groupId>
+        <artifactId>dropwizard-testing-parent</artifactId>
+        <version>0.1.0</version>
+        <relativePath>../dropwizard-testing-parent</relativePath>
+    </parent>
+
+    <name>Dropwizard Integration Testing - DynamoDb</name>
+    <url>https://github.com/caspianb/dropwizard-testing</url>
+    <description>Adds embedded and containerized DynamoDb support to dropwizard integration testing.</description>
+
+    <artifactId>dropwizard-testing-dynamo</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.logicalbias</groupId>
+            <artifactId>dropwizard-testing</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>DynamoDBLocal</artifactId>
+            <version>${dynamodb-local.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>

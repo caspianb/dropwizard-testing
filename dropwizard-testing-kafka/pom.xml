@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.logicalbias</groupId>
+        <artifactId>dropwizard-testing-parent</artifactId>
+        <version>0.1.0</version>
+        <relativePath>../dropwizard-testing-parent</relativePath>
+    </parent>
+
+    <name>Dropwizard Integration Testing - Kafka</name>
+    <url>https://github.com/caspianb/dropwizard-testing</url>
+    <description>Adds embedded kafka support to the dropwizard integration testing.</description>
+
+    <artifactId>dropwizard-testing-kafka</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.logicalbias</groupId>
+            <artifactId>dropwizard-testing</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
+            <version>${spring-kafka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>Dropwizard Testing Project</name>
+    <url>https://github.com/caspianb/dropwizard-testing</url>
+    <description>A dropwizard integration testing framework built on top of the official dropwizard-testing library.</description>
+
+    <groupId>com.logicalbias</groupId>
+    <artifactId>dropwizard-testing-project</artifactId>
+    <version>0.1.0</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <modules>
+        <module>dropwizard-testing</module>
+        <module>dropwizard-testing-dynamo</module>
+        <module>dropwizard-testing-kafka</module>
+    </modules>
+
+</project>
