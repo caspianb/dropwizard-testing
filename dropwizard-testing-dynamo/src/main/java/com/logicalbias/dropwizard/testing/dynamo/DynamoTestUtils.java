@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 
@@ -24,37 +23,46 @@ public class DynamoTestUtils {
     /**
      * Creates a new table for the given dynamoDbBean type.
      */
-    public void createTable(Class<?> itemType) {
+    public <T> DynamoDbTable<T> createTable(Class<T> itemType) {
         var tableName = getTableName(itemType);
-        createTable(tableName, itemType);
+        return createTable(tableName, itemType);
     }
 
     /**
      * Creates a new table for the given dynamoDbBean type.
      */
-    public void createTable(Class<?> itemType, Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
+    public <T> DynamoDbTable<T> createTable(Class<T> itemType, Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
         var tableName = getTableName(itemType);
-        createTable(tableName, itemType, requestConsumer);
+        return createTable(tableName, itemType, requestConsumer);
     }
 
     /**
      * Creates a new table for the given dynamoDbBean type with the specified name.
      */
-    public void createTable(String tableName, Class<?> itemType) {
-        createTable(tableName, itemType, Function.identity()::apply);
+    public <T> DynamoDbTable<T> createTable(String tableName, Class<T> itemType) {
+        return createTable(tableName, itemType, null);
     }
 
     /**
-     * Creates a new table for the given dynamoDbBean type with the specified name.
+     * Creates a new table for the given dynamoDbBean type with the specified name. When using this method, callers are responsible
+     * for initializing all indexes defined in the bean.
      */
-    public void createTable(String tableName, Class<?> itemType, Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
+    public <T> DynamoDbTable<T> createTable(String tableName, Class<T> itemType, Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
         if (tableExists(tableName)) {
             log.info("Table '{}' already exists.", tableName);
-            return;
+            return getTable(tableName, itemType);
         }
 
         log.info("Creating table={} for item={}...", tableName, itemType.getName());
-        getTable(tableName, itemType).createTable(requestConsumer);
+        var table = getTable(tableName, itemType);
+
+        if (requestConsumer == null) {
+            table.createTable();
+        }
+        else {
+            table.createTable(requestConsumer);
+        }
+
         try (var dbWaiter = client.waiter()) {
             dbWaiter.waitUntilTableExists(DescribeTableRequest.builder()
                     .tableName(tableName)
@@ -62,6 +70,7 @@ public class DynamoTestUtils {
         }
 
         log.info(" - Table '{}' created successfully.", tableName);
+        return table;
     }
 
     public void deleteTable(Class<?> itemType) {
