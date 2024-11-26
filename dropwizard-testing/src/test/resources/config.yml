@@ -1,0 +1,8 @@
+server:
+  # Default Configuration to allow for config overrides in tests
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081

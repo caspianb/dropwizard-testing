@@ -1,11 +1,174 @@
-# dropwizard-testing
+# Dropwizard Integration Testing
 
-A unit / integration test framework build around [Dropwizard Testing](https://github.com/dropwizard/dropwizard/tree/release/4.0.x/dropwizard-testing).
+A simple integration test framework built around [Dropwizard Testing](https://github.com/dropwizard/dropwizard/tree/release/4.0.x/dropwizard-testing).
 
-Wraps [DropwizardAppExtension](https://javadoc.io/doc/io.dropwizard/dropwizard-testing/1.3.9/io/dropwizard/testing/junit5/DropwizardAppExtension.html) with jupiter
-extensions allowing tests to more easily configure an integration test environment as well as mocking services running within that test application.
+* [Getting Start](#getting-started)
+* [Initialize the Test App](#initializing-the-test-application)
+    * [@DropwizardTest](#dropwizardtest-annotation)
+* [TestClient](#testclient)
+* [Mocking Dependencies](#mocking-dependencies)
 
-Improved README documentation incoming.
+# Getting Started
 
+The basic functionality simply wraps the existing [integration testing](https://www.dropwizard.io/en/stable/manual/testing.html#junit-5) logic already provided
+by the official dropwizard-testing library. The goal of this library is to make it quicker and easier to get the unit test up and running with minimal boilerplate
+overhead.
 
+---
 
+## Initializing the Test Application
+
+Take this example from the dropwizard documentation linked above. This will start the dropwizard application at the start of the test and shuts it down when all tests have finished running.
+
+```java
+
+@ExtendWith(DropwizardExtensionsSupport.class)
+class LoginAcceptanceTest {
+
+    private static DropwizardAppExtension<TestConfiguration> EXT = new DropwizardAppExtension<>(
+            MyApp.class,
+            ResourceHelpers.resourceFilePath("my-app-config.yaml")
+    );
+
+    @Test
+    void loginHandlerRedirectsAfterPost() {
+        Client client = EXT.client();
+
+        Response response = client.target(
+                        String.format("http://localhost:%d/login", EXT.getLocalPort()))
+                .request()
+                .post(Entity.json(loginForm()));
+
+        assertThat(response.getStatus()).isEqualTo(302);
+    }
+}
+```
+
+Using this library, the above can be accomplished in a similar way through an annotation. This library also provides the TestClient helper tool which will know how to connect
+to the test application (which port to connect to).
+
+```java
+
+@DropwizardTest(value = MyApp.class, configFile = "my-app-config.yaml", useResourceFilePath = true)
+class LoginAcceptanceTest {
+
+    private final DropwizardAppExtension<?> dropwizardAppExtension;
+    private final TestClient testClient;
+
+    LoginAcceptanceTest(DropwizardAppExtension dropwizardAppExtension, TestClient testClient) {
+        this.dropwizardAppExtension = dropwizardAppExtension;
+        this.testClient = testClient;
+    }
+
+    @Test
+    void loginHandlerRedirectsAfterPost() {
+        testClient.post("login")
+                .body(loginForm())
+                .expectStatus(302)
+                .invoke();
+    }
+}
+```
+
+This library's jupiter extension will allow ****you to inject any dependency defined in the HK2 context by your application (resource classes, services, etc).
+It provides the DropwizardAppExtension instance that would have been defined in the static block above as well as the [TestClient](#testclient) instance for this test.
+
+---
+
+### @DropwizardTest Annotation
+
+| Attribute             | Description                                                                                                                                |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `value`               | The Dropwizard Application class containing your application's entry point.                                                                |
+| `configFile`          | The configPath passed to the DropwizardAppExtension.                                                                                       |
+| `useResourceFilePath` | Set to true if the test should use `ResourceHelpers.resourceFilePath` to detect the location of your configuration file.                   | 
+| `properties`          | List of properties to override for the life of the test. Should follow the standard properties file format: "property.name=value"          |
+| `webEnvironment`      | DEFAULT will start the application on the port as configured in the configuration file. RANDOM will use a random port for each test class. |   
+
+> **_NOTE:_** All test annotations are discoverable via inheritance. This allows you to create a base test class or interface using these annotations and
+> extend/implement to run standard jupiter hook points (e.g. `@Before` methods) generate required test state (e.g. auth tokens), initialize TestClient headers, create
+> database tables, or whatever else your application needs prepared.
+
+---
+
+## TestClient
+
+A TestClient utility is provided which wraps the DropwizardAppExtension::client. This utility is meant to make it easier to make web requests to the test application.
+
+The TestClient provides a fluent builder pattern to make a request, assert the response, and retrieve the result.
+
+```java
+class TestClientExample {
+
+    private final TestClient testClient;
+
+    @BeforeEach
+    void beforeEach(Identity identity) {
+        // This header will be applied to every call made by this testClient instance.
+        testClient.defaultHeader("Authorization", "Bearer: " + identity.getBearerToken());
+    }
+  
+    ResourceDto makeRequest(String resourceId, ResourceDto body) {
+        return testClient.put("resource/{resourceId}", resourceId)
+                .header("customHeader", "customValue")
+                .body(body)
+                .expectStatus(Response.Status.OK)
+                .invoke(ResourceDto.class);
+    }
+
+}
+```
+
+## Mocking Dependencies
+
+The enhanced extension also makes it easy to inject mocks into your application.
+
+Assume you have this resource in your application:
+
+```java
+
+@Singleton
+@Path("orders")
+@RequiredArgsConstructor(onConstructor_ = @Inject)
+public class OrderResource {
+
+    private final OrderService orderService;
+
+    @GET
+    @Path("{orderId}")
+    public OrderDto getOrder(@PathParam("orderId") String orderId) {
+        var order = orderService.getOrder(orderId);
+        return OrderDto.mapFrom(order);
+    }
+}
+```
+
+You can mock out any services in your application by using the provided `@MockBean` annotation.
+
+> **_NOTE:_** This requires usage of HK2 dependency injection. If you manually 'new' your OrderResource and register the instance with jersey this will not work.
+
+```java
+
+@MockBean(OrderService.class)
+@DropwizardTest(value = MyApp.class, configFile = "my-app-config.yaml", useResourceFilePath = true)
+@RequiredArgsConstructor
+class OrderResourceTest {
+
+    private final TestClient testClient;
+    private final OrderService orderService;
+
+    @Test
+    void OrderResourceTest() {
+        var testOrder = // ...
+                Mockito.doReturn(testOrder)
+                        .when(orderService)
+                        .getOrder(testOrder.getOrderId());
+
+        var orderDto = testClient.get("orders/{orderId}", testOrder.getOrderId())
+                .expectStatus(200)
+                .invoke(OrderDto.class);
+
+        // Assert against orderDto returned
+    }
+}
+```

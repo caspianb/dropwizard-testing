@@ -8,13 +8,13 @@
     <parent>
         <groupId>com.logicalbias</groupId>
         <artifactId>dropwizard-testing-parent</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
         <relativePath>../dropwizard-testing-parent</relativePath>
     </parent>
 
     <name>Dropwizard Integration Testing - Kafka</name>
     <url>https://github.com/caspianb/dropwizard-testing</url>
-    <description>Adds embedded kafka support to the dropwizard integration testing.</description>
+    <description>Adds embedded kafka support to dropwizard integration testing.</description>
 
     <artifactId>dropwizard-testing-kafka</artifactId>
     <packaging>jar</packaging>
