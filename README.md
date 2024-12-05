@@ -67,7 +67,7 @@ class LoginAcceptanceTest {
         testClient.post("login")
                 .body(loginForm())
                 .expectStatus(302)
-                .invoke();
+                .andReturn();
     }
 }
 ```
@@ -103,20 +103,20 @@ The TestClient provides a fluent builder pattern to make a request, assert the r
 class TestClientExample {
 
     private final TestClient testClient;
-    
-    TestClientExample(TestClient testClient) {
-      var bearerToken = // ...
 
-      // This header will be applied to every call made by this testClient instance.
-      testClient.defaultHeader("Authorization", "Bearer: " + bearerToken);        
+    TestClientExample(TestClient testClient) {
+        var bearerToken = // ...
+
+                // This header will be applied to every call made by this testClient instance.
+                testClient.defaultHeader("Authorization", "Bearer: " + bearerToken);
     }
-    
+
     ResourceDto updateResource(String resourceId, ResourceDto body) {
         return testClient.put("resource/{resourceId}", resourceId)
                 .header("customHeader", "customValue")
                 .body(body)
                 .expectStatus(Response.Status.OK)
-                .invoke(ResourceDto.class);
+                .andReturn(ResourceDto.class);
     }
 
 }
@@ -163,13 +163,13 @@ class OrderResourceTest {
     @Test
     void OrderResourceTest() {
         var testOrder = // ...
-        Mockito.doReturn(testOrder)
-                .when(orderService)
-                .getOrder(testOrder.getOrderId());
+                Mockito.doReturn(testOrder)
+                        .when(orderService)
+                        .getOrder(testOrder.getOrderId());
 
         var orderDto = testClient.get("orders/{orderId}", testOrder.getOrderId())
                 .expectStatus(200)
-                .invoke(OrderDto.class);
+                .andReturn(OrderDto.class);
 
         // Assert against orderDto returned
     }
@@ -186,15 +186,16 @@ need to be commonly mocked out throughout the test code.
 In the following example, assume you have an ItemClient in your service which makes a web request to some other service. Instead of mocking this out in every test, you could
 create a single TestItemClient that extends/overrides the web-request calls and `@Import` this into every test.
 
-> To avoid copy-pasting `@Import` blocks throughout your test suite, you can create an interface or base class which holds the `@DropwizardTest` annotation along 
-> with any common `@Import` annotations. Every test could simply implement such an interface and get the same behavior. 
+> To avoid copy-pasting `@Import` blocks throughout your test suite, you can create an interface or base class which holds the `@DropwizardTest` annotation along
+> with any common `@Import` annotations. Every test could simply implement such an interface and get the same behavior.
 
 ```java
+
 @Import(TestItemClient.class)
 @DropwizardTest(value = MyApp.class, configFile = "my-app-config.yaml", useResourceFilePath = true)
 @RequiredArgsConstructor
 class OrderResourceTest {
-    
+
     @Test
     void someTest() {
         // Test that calls an endpoint which ultimately uses the ItemClient

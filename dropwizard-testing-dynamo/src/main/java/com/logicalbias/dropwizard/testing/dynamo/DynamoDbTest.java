@@ -16,7 +16,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(DynamoDbTestExtension.class)
 public @interface DynamoDbTest {
 
+    /**
+     * Control which environment the dynamo database service will run under; defaults to EMBEDDED.
+     */
     Environment environment() default Environment.EMBEDDED;
+
+    /**
+     * Enabled if the clients should be injected into the DropwizardTest HK2 context (if applicable); defaults to true.
+     * If this is set to false, the properties field should be set to ensure the correct URL and port are injected into
+     * the application context.
+     */
+    boolean registerClients() default true;
 
     /**
      * <p>
@@ -37,8 +47,10 @@ public @interface DynamoDbTest {
 
     enum Environment {
         /**
-         * Starts an embedded, in-memory dynamoDb database. The database will
-         * not be exposed on any port.
+         * Starts an embedded, in-memory dynamoDb database. The database will not be exposed on any port
+         * and the service MUST use the clients provided from the {@link DynamoManager} which will be provided
+         * via test constructor/method params. If the bindClients property is true, the test can also use the
+         * injected clients directly.
          */
         EMBEDDED,
 

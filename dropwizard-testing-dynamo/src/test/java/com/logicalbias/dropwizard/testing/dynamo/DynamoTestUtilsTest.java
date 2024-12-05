@@ -42,7 +42,6 @@ public class DynamoTestUtilsTest {
     @AllArgsConstructor
     @DynamoDbBean
     @DynamoDBTable(tableName = "test")
-
     public static class TestItem {
         @Getter(onMethod_ = @DynamoDbPartitionKey)
         private String id;

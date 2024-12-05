@@ -37,7 +37,7 @@ public class ExtensionTest {
         var id = "test-value";
         var response = testClient.get("widgets/{widgetId}", id)
                 .expectStatus(Response.Status.OK)
-                .invoke(String.class);
+                .andReturn(String.class);
 
         assertEquals("Widget: " + id, response);
     }
@@ -48,7 +48,7 @@ public class ExtensionTest {
         Mockito.doReturn(id).when(widgetService).getWidget(Mockito.anyString());
         var response = testClient.get("widgets/{widgetId}", "0")
                 .expectStatus(Response.Status.OK)
-                .invoke(String.class);
+                .andReturn(String.class);
 
         assertEquals(id, response);
     }
@@ -58,17 +58,30 @@ public class ExtensionTest {
         var testValue = testResource.getTestValue();
         var response = testClient.get("tests")
                 .expectStatus(Response.Status.OK)
-                .invoke(String.class);
+                .andReturn(String.class);
         assertEquals(testValue, response);
 
-        // Test that we can interract with the imported resource and change the value returned
+        // Test that we can interact with the imported resource and change the value returned
         testValue = UUID.randomUUID().toString();
         testResource.setTestValue(testValue);
 
         response = testClient.get("tests")
                 .expectStatus(Response.Status.OK)
-                .invoke(String.class);
+                .andReturn(String.class);
         assertEquals(testValue, response);
+    }
+
+    @Test
+    void testClientResponse() {
+        try (var response = testClient.get("tests")
+                .expectStatus(200)
+                .andReturnResponse()) {
+
+            var headers = response.getHeaders();
+            var responseStr = response.readEntity(String.class);
+            assertEquals(testResource.getTestValue(), responseStr);
+            assertEquals(testResource.getTestHeader(), headers.getFirst(TestResource.TEST_HEADER_NAME));
+        }
     }
 
     @Data
@@ -76,11 +89,17 @@ public class ExtensionTest {
     @Singleton
     public static class TestResource {
 
-        private String testValue = "test";
+        public static String TEST_HEADER_NAME = "test-header";
+
+        private String testValue = UUID.randomUUID().toString();
+        private String testHeader = UUID.randomUUID().toString();
 
         @GET
-        public String getTest() {
-            return testValue;
+        public Response getTest() {
+            return Response
+                    .ok(testValue)
+                    .header(TEST_HEADER_NAME, testHeader)
+                    .build();
         }
     }
 }

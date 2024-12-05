@@ -41,8 +41,17 @@ public class RequestBuilder {
         return this;
     }
 
-    public RequestBuilder header(String name, Object... values) {
-        headers.addAll(name, values);
+    /**
+     * Adds the specified value to the request headers. If null, the key is removed.
+     */
+    public RequestBuilder header(String name, Object value) {
+        if (value == null) {
+            headers.remove(name);
+        }
+        else {
+            headers.add(name, value);
+        }
+
         return this;
     }
 
@@ -65,33 +74,68 @@ public class RequestBuilder {
         return this;
     }
 
-    public void invoke() {
+    public void andReturn() {
         try (var response = callAndGetResponse()) {
         }
     }
 
-    public void invoke(Consumer<Response> consumer) {
+    @SuppressWarnings("unchecked")
+    public <T> T andReturn(Class<T> responseType) {
+        // Special case if a user requests Response.class directly
+        if (responseType == Response.class) {
+            return (T) callAndGetResponse();
+        }
+
         try (var response = callAndGetResponse()) {
-            consumer.accept(response);
+            return response.readEntity(responseType);
         }
     }
 
-    public <T> T invoke(Function<Response, T> function) {
+    public <T> T andReturn(GenericType<T> responseType) {
+        try (var response = callAndGetResponse()) {
+            return response.readEntity(responseType);
+        }
+    }
+
+    public <T> T andReturn(Function<Response, T> function) {
         try (var response = callAndGetResponse()) {
             return function.apply(response);
         }
     }
 
-    public <T> T invoke(GenericType<T> responseType) {
+    public void andConsumeResponse(Consumer<Response> consumer) {
         try (var response = callAndGetResponse()) {
-            return response.readEntity(responseType);
+            consumer.accept(response);
         }
     }
 
+    public Response andReturnResponse() {
+        return callAndGetResponse();
+    }
+
+    @Deprecated
+    public void invoke() {
+        andReturn();
+    }
+
+    @Deprecated
+    public void invoke(Consumer<Response> consumer) {
+        andConsumeResponse(consumer);
+    }
+
+    @Deprecated
+    public <T> T invoke(Function<Response, T> function) {
+        return andReturn(function);
+    }
+
+    @Deprecated
+    public <T> T invoke(GenericType<T> responseType) {
+        return andReturn(responseType);
+    }
+
+    @Deprecated
     public <T> T invoke(Class<T> responseType) {
-        try (var response = callAndGetResponse()) {
-            return response.readEntity(responseType);
-        }
+        return andReturn(responseType);
     }
 
     private Response callAndGetResponse() {
@@ -107,8 +151,7 @@ public class RequestBuilder {
             target = target.queryParam(param.getKey(), (Object[]) paramValues);
         }
 
-        var request = target
-                .request()
+        var request = target.request()
                 .headers(headers);
 
         var response = body == null

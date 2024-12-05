@@ -7,7 +7,6 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -32,10 +31,12 @@ public class TestClient {
     }
 
     /**
-     * Headers that will be automatically added to every request.
+     * Add a (non-null) header which will be automatically added to every request.
      */
-    public TestClient defaultHeader(String key, Object... values) {
-        defaultHeaders.put(key, Arrays.asList(values));
+    public TestClient defaultHeader(String key, Object value) {
+        if (value != null) {
+            defaultHeaders.add(key, value);
+        }
         return this;
     }
 
