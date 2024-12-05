@@ -3,12 +3,16 @@ package com.logicalbias.dropwizard.testing;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -30,6 +34,13 @@ public class ExtensionTest {
     private final TestClient testClient;
     private final WidgetService widgetService;
     private final TestResource testResource;
+
+    private final String testHeaderValue = UUID.randomUUID().toString();
+
+    @BeforeEach
+    void beforeEach() {
+        testClient.defaultHeader("test-header", testHeaderValue);
+    }
 
     @Test
     void testMockWidgetCallsRealMethod() {
@@ -71,16 +82,24 @@ public class ExtensionTest {
         assertEquals(testValue, response);
     }
 
-    @Test
-    void testClientResponse() {
+    @RepeatedTest(5)
+    void testClientHeadersAndResponse() {
+        var value = UUID.randomUUID().toString();
         try (var response = testClient.get("tests")
+                .header("another-header", value)
                 .expectStatus(200)
                 .andReturnResponse()) {
 
             var headers = response.getHeaders();
             var responseStr = response.readEntity(String.class);
+
             assertEquals(testResource.getTestValue(), responseStr);
-            assertEquals(testResource.getTestHeader(), headers.getFirst(TestResource.TEST_HEADER_NAME));
+
+            assertEquals(1, headers.get("test-header").size());
+            assertEquals(testHeaderValue, headers.getFirst("test-header"));
+
+            assertEquals(1, headers.get("another-header").size());
+            assertEquals(value, headers.getFirst("another-header"));
         }
     }
 
@@ -89,17 +108,20 @@ public class ExtensionTest {
     @Singleton
     public static class TestResource {
 
-        public static String TEST_HEADER_NAME = "test-header";
-
         private String testValue = UUID.randomUUID().toString();
-        private String testHeader = UUID.randomUUID().toString();
 
         @GET
-        public Response getTest() {
-            return Response
-                    .ok(testValue)
-                    .header(TEST_HEADER_NAME, testHeader)
-                    .build();
+        public Response getTest(@Context HttpHeaders headers) {
+            var response = Response.ok(testValue);
+
+            // Return all headers that were passed in
+            headers.getRequestHeaders().forEach((name, values) -> {
+                for (var value : values) {
+                    response.header(name, value);
+                }
+            });
+
+            return response.build();
         }
     }
 }

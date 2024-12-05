@@ -31,11 +31,11 @@ public class TestClient {
     }
 
     /**
-     * Add a (non-null) header which will be automatically added to every request.
+     * Set a (non-null) header which will be automatically added to every request.
      */
     public TestClient defaultHeader(String key, Object value) {
         if (value != null) {
-            defaultHeaders.add(key, value);
+            defaultHeaders.putSingle(key, value);
         }
         return this;
     }
