@@ -10,6 +10,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbV
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DynamoTestUtilsTest {
 
     private final DynamoTestUtils dynamoTestUtils;
+
+    // Test that we can inject the client as well
+    private final DynamoDbClient client;
 
     @Test
     void testTableIndexesCreated() {

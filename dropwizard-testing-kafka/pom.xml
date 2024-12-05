@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.logicalbias</groupId>
         <artifactId>dropwizard-testing-parent</artifactId>
-        <version>0.2.2</version>
+        <version>0.2.3</version>
         <relativePath>../dropwizard-testing-parent</relativePath>
     </parent>
 

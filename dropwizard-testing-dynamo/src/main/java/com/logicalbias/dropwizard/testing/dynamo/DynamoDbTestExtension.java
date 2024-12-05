@@ -68,8 +68,12 @@ class DynamoDbTestExtension implements ParameterResolver,
         }
 
         // If a DependencyRegistry is detected, then do not support any client types
-        // It will handle the parameter resolution for us
-        return ExtensionHooks.isActive(context) && DYNAMO_CLIENTS.containsKey(paramType);
+        // It will handle the client parameter resolution for us
+        if (ExtensionHooks.isActive(context)) {
+            return false;
+        }
+
+        return DYNAMO_CLIENTS.containsKey(paramType);
     }
 
     @Override
