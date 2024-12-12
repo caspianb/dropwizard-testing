@@ -7,7 +7,6 @@ import jakarta.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.jvnet.hk2.annotations.ContractsProvided;
@@ -83,7 +82,7 @@ class TestServiceListener<C extends Configuration> extends DropwizardAppExtensio
         private <T> void bind(Class<T> type, String name, T instance) {
             bind(instance)
                     .to(type)
-                    .named(StringUtils.defaultIfBlank(name, null))
+                    .named(name == null || name.isBlank() ? null : name)
                     .ranked(Integer.MAX_VALUE);
         }
     }
