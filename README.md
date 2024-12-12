@@ -7,6 +7,8 @@ A simple integration test framework built around [Dropwizard Testing](https://gi
     * [@DropwizardTest](#dropwizardtest-annotation)
 * [TestClient](#testclient)
 * [Mocking Dependencies](#mocking-dependencies)
+* Additional Modules
+    * [DynamoDb Testing](dropwizard-testing-dynamo/)
 
 # Getting Started
 
@@ -14,7 +16,31 @@ The basic functionality simply wraps the existing [integration testing](https://
 by the official dropwizard-testing library. The goal of this library is to make it quicker and easier to get the unit test up and running with minimal boilerplate
 overhead.
 
-> **_NOTE:_** This library is still considered "beta" (especially the kafka submodule); some APIs may be changed if necessary.
+> **_NOTE:_** This library currently supports Dropwizard 4.x. (though it may work with Dropwizard 3+).
+> If demand exists, a new version of the library can be provided for Dropwizard1.x.
+> This library is still considered "beta" (especially the kafka submodule - the spring-kafka-test dependency may be
+> removed in a latter version); some APIs may be changed if necessary.
+
+### Include in your project:
+
+#### Maven
+
+```yaml
+<dependency>
+  <groupId>com.logicalbias</groupId>
+  <artifactId>dropwizard-testing</artifactId>
+  <version>0.2.3</version>
+  <scope>test</scope>
+</dependency>
+```
+
+#### Gradle
+
+```groovy
+dependencies {
+    testImplementation 'com.logicalbias:dropwizard-testing:0.2.3'
+}
+```
 
 ---
 
@@ -79,13 +105,13 @@ It provides the DropwizardAppExtension instance that would have been defined in 
 
 ### @DropwizardTest Annotation
 
-| Attribute             | Description                                                                                                                                |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `value`               | The Dropwizard Application class containing the application's entry point.                                                                 |
-| `configFile`          | The configPath passed to the DropwizardAppExtension.                                                                                       |
-| `useResourceFilePath` | Set to true if the test should use `ResourceHelpers.resourceFilePath` to detect the location of the configuration file.                    | 
-| `properties`          | List of properties to override for the life of the test. Should follow the standard properties file format: "property.name=value"          |
-| `webEnvironment`      | DEFAULT will start the application on the port as configured in the configuration file. RANDOM will use a random port for each test class. |   
+| Attribute             | Default Value | Description                                                                                                                                |
+|-----------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `value`               | required      | The Dropwizard Application class containing the application's entry point.                                                                 |
+| `configFile`          | required      | The configPath passed to the DropwizardAppExtension.                                                                                       |
+| `useResourceFilePath` | false         | Set to true if the test should use `ResourceHelpers.resourceFilePath` to detect the location of the configuration file.                    |
+| `properties`          |               | List of properties to override for the life of the test. Should follow the standard properties file format: "property.name=value"          |
+| `webEnvironment`      | DEFAULT       | DEFAULT will start the application on the port as configured in the configuration file. RANDOM will use a random port for each test class. |
 
 > **_NOTE:_** All test annotations are discoverable via inheritance. This allows you to create a base test class or interface using these annotations and
 > extend/implement to run standard jupiter hook points (e.g. `@Before` methods) generate required test state (e.g. auth tokens), initialize TestClient headers, create
@@ -105,14 +131,14 @@ class TestClientExample {
     private final TestClient testClient;
 
     TestClientExample(TestClient testClient) {
-        var bearerToken = // ...
+        var bearerToken = createAuthToken();
 
-                // This header will be applied to every call made by this testClient instance.
-                testClient.defaultHeader("Authorization", "Bearer: " + bearerToken);
+        // This header will be applied to every call made by this testClient instance.
+        testClient.defaultHeader("Authorization", "Bearer: " + bearerToken);
     }
 
     ResourceDto updateResource(String resourceId, ResourceDto body) {
-        return testClient.put("resource/{resourceId}", resourceId)
+        return testClient.put("resources/{resourceId}", resourceId)
                 .header("customHeader", "customValue")
                 .body(body)
                 .expectStatus(Response.Status.OK)
@@ -162,10 +188,11 @@ class OrderResourceTest {
 
     @Test
     void OrderResourceTest() {
-        var testOrder = // ...
-                Mockito.doReturn(testOrder)
-                        .when(orderService)
-                        .getOrder(testOrder.getOrderId());
+        var testOrder = createTestOrder();
+
+        Mockito.doReturn(testOrder)
+                .when(orderService)
+                .getOrder(testOrder.getOrderId());
 
         var orderDto = testClient.get("orders/{orderId}", testOrder.getOrderId())
                 .expectStatus(200)

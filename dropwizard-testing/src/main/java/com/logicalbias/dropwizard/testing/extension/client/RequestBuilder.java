@@ -10,10 +10,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.stream.Streams;
 import org.junit.jupiter.api.Assertions;
 
 @Slf4j
@@ -143,12 +144,16 @@ public class RequestBuilder {
 
         // attach query params
         for (var param : params.entrySet()) {
+            var paramKey = param.getKey();
+            var paramValue = param.getValue();
+
             // Convert all param values to strings; otherwise, the URI Builder will wrap the values in brackets
             // Which fails to work for dropwizard (e.g. queryParam: ["error"", true] will result in ...?error=[true]
-            var paramValues = Streams.of(param.getValue())
+            var stringValues = Stream.ofNullable(paramValue)
+                    .flatMap(Collection::stream)
                     .map(String::valueOf)
                     .toArray(String[]::new);
-            target = target.queryParam(param.getKey(), (Object[]) paramValues);
+            target = target.queryParam(paramKey, (Object[]) stringValues);
         }
 
         var request = target.request()

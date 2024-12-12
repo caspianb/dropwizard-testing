@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.logicalbias</groupId>
         <artifactId>dropwizard-testing-parent</artifactId>
-        <version>0.2.3</version>
+        <version>0.2.4-SNAPSHOT</version>
         <relativePath>../dropwizard-testing-parent</relativePath>
     </parent>
 
@@ -28,13 +28,11 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>DynamoDBLocal</artifactId>
-            <version>${dynamodb-local.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>${testcontainers.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
