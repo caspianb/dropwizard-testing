@@ -12,17 +12,24 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.platform.commons.support.AnnotationSupport;
 
+import com.logicalbias.dropwizard.testing.extension.annotation.TestProperties;
 import com.logicalbias.dropwizard.testing.extension.utils.TestHelpers;
+
+import static com.logicalbias.dropwizard.testing.extension.utils.TestHelpers.buildClassInheritanceTree;
+import static com.logicalbias.dropwizard.testing.extension.utils.TestHelpers.findAnnotations;
 
 @Slf4j
 @Getter(AccessLevel.PACKAGE)
@@ -163,7 +170,7 @@ class TestContextManager {
             configOverrides.add(ConfigOverride.randomPorts());
         }
 
-        configOverrides.addAll(getPropertyOverrides(dropwizardTest));
+        configOverrides.addAll(getPropertyOverrides(testClass, dropwizardTest));
         return new DropwizardAppExtension<>(applicationClass, configFile, configOverrides.toArray(ConfigOverride[]::new));
     }
 
@@ -174,43 +181,25 @@ class TestContextManager {
                 : configFile;
     }
 
-    static List<ConfigOverride> getPropertyOverrides(DropwizardTest dropwizardTest) {
-        return Arrays.stream(dropwizardTest.properties())
+    static List<ConfigOverride> getPropertyOverrides(Class<?> testClass, DropwizardTest dropwizardTest) {
+        var properties = new LinkedHashMap<String, String>();
+
+        // Scan for @TestProperties annotations first; these take precedence over other configured properties
+        findAnnotations(testClass, TestProperties.class).stream()
+                .flatMap(testProperties -> Arrays.stream(testProperties.properties()))
                 .map(TestHelpers::splitProperty)
-                .map(props -> ConfigOverride.config(props[0], props[1]))
+                .filter(props -> StringUtils.isNoneBlank(props[0], props[1]))
+                .forEach(props -> properties.putIfAbsent(props[0], props[1]));
+
+        // Now scan for properties on the DropwizardTest annotation
+        Arrays.stream(dropwizardTest.properties())
+                .map(TestHelpers::splitProperty)
+                .filter(props -> StringUtils.isNoneBlank(props[0], props[1]))
+                .forEach(props -> properties.putIfAbsent(props[0], props[1]));
+
+        return properties.entrySet().stream()
+                .map(props -> ConfigOverride.config(props.getKey(), props.getValue()))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Generates a list of all inherited types up to Object for the specified class.
-     * The list will be in BFS ordering (types closer to definition of the specified
-     * type are first in the list).
-     */
-    private static List<Class<?>> buildClassInheritanceTree(final Class<?> classType) {
-        // The inheritance tree may contain duplicate references; store in LinkedHashSet to
-        // ensure ordering and distinctiveness of tree is maintained
-        var inheritedTypes = new LinkedHashSet<Class<?>>();
-        inheritedTypes.add(classType);
-
-        var bfsQueue = new ArrayDeque<Class<?>>();
-        bfsQueue.add(classType);
-
-        while (!bfsQueue.isEmpty()) {
-            var current = bfsQueue.pop();
-            if (current == Object.class) continue;
-
-            // Add current type to our list
-            inheritedTypes.add(current);
-
-            var superClass = current.getSuperclass();
-            if (superClass != null) {
-                bfsQueue.add(superClass);
-            }
-
-            bfsQueue.addAll(List.of(current.getInterfaces()));
-        }
-
-        return List.copyOf(inheritedTypes);
     }
 
 }

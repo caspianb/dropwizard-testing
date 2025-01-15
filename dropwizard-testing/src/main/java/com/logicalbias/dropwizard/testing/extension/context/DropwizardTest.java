@@ -28,7 +28,7 @@ public @interface DropwizardTest {
     Class<? extends Application<? extends Configuration>> value();
 
     /**
-     * <p>The path to the the configuration file to load.</p>
+     * <p>The path to the configuration file to load.</p>
      */
     String configFile();
 

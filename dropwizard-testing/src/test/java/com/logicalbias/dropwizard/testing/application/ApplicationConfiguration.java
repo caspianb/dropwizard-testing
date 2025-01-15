@@ -9,4 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ApplicationConfiguration extends Configuration {
     @JsonProperty("name")
     private String name;
+
+    @JsonProperty("description")
+    private String description;
 }

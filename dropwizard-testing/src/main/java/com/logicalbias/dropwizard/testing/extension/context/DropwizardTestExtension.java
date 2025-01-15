@@ -1,5 +1,6 @@
 package com.logicalbias.dropwizard.testing.extension.context;
 
+import io.dropwizard.core.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -45,6 +46,10 @@ class DropwizardTestExtension implements
             return true;
         }
 
+        if (Configuration.class.isAssignableFrom(paramType)) {
+            return true;
+        }
+
         return testContext.getBean(paramType) != null;
     }
 
@@ -55,6 +60,10 @@ class DropwizardTestExtension implements
 
         if (paramType == TestClient.class) {
             return getTestClient(extensionContext);
+        }
+
+        if (Configuration.class.isAssignableFrom(paramType)) {
+            return testContext.getAppExtension().getConfiguration();
         }
 
         return testContext.getBean(paramType);

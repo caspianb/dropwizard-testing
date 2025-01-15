@@ -2,9 +2,10 @@
 
 A simple integration test framework built around [Dropwizard Testing](https://github.com/dropwizard/dropwizard/tree/release/4.0.x/dropwizard-testing).
 
-* [Getting Start](#getting-started)
-* [Initialize the Test App](#initializing-the-test-application)
+* [Getting Started](#getting-started)
+* [Initializing the Test Application](#initializing-the-test-application)
     * [@DropwizardTest](#dropwizardtest-annotation)
+    * [@TestProperties](#testproperties-annotation)
 * [TestClient](#testclient)
 * [Mocking Dependencies](#mocking-dependencies)
 * Additional Modules
@@ -116,6 +117,13 @@ It provides the DropwizardAppExtension instance that would have been defined in 
 > **_NOTE:_** All test annotations are discoverable via inheritance. This allows you to create a base test class or interface using these annotations and
 > extend/implement to run standard jupiter hook points (e.g. `@Before` methods) generate required test state (e.g. auth tokens), initialize TestClient headers, create
 > database tables, or whatever else the application needs prepared.
+
+---
+
+### @TestProperties Annotation
+
+This annotation overrides properties in an equivalent manner to `@DropwizardTest` properties attribute. If duplicate properties are detected across multiple levels, the
+annotations defined on child interfaces/classes will take priority over those defined at higher levels.
 
 ---
 

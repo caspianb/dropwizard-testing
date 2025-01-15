@@ -8,6 +8,9 @@ import jakarta.inject.Singleton;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import com.logicalbias.dropwizard.testing.application.widgets.WidgetResource;
+import com.logicalbias.dropwizard.testing.application.widgets.WidgetService;
+
 /**
  * Integration test application.
  */
