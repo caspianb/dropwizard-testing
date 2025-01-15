@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.logicalbias</groupId>
         <artifactId>dropwizard-testing-project</artifactId>
-        <version>0.2.4</version>
+        <version>0.2.5-SNAPSHOT</version>
     </parent>
 
     <name>Dropwizard Integration Testing Parent</name>
@@ -22,6 +22,8 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <dropwizard-testing.version>0.2.5-SNAPSHOT</dropwizard-testing.version>
 
         <!-- dependency versions -->
         <dropwizard.version>4.0.1</dropwizard.version>
@@ -52,17 +54,17 @@
             <dependency>
                 <groupId>com.logicalbias</groupId>
                 <artifactId>dropwizard-testing</artifactId>
-                <version>0.2.4</version>
+                <version>${dropwizard-testing.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.logicalbias</groupId>
                 <artifactId>dropwizard-testing-dynamo</artifactId>
-                <version>0.2.4</version>
+                <version>${dropwizard-testing.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.logicalbias</groupId>
                 <artifactId>dropwizard-testing-kafka</artifactId>
-                <version>0.2.4</version>
+                <version>${dropwizard-testing.version}</version>
             </dependency>
 
             <dependency>
