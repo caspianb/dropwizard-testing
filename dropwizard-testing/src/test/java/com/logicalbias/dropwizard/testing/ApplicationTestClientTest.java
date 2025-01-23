@@ -1,5 +1,6 @@
 package com.logicalbias.dropwizard.testing;
 
+import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,11 +11,13 @@ import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.logicalbias.dropwizard.testing.application.ApplicationConfiguration;
 import com.logicalbias.dropwizard.testing.application.DropwizardTestApplication;
 import com.logicalbias.dropwizard.testing.extension.client.TestClient;
 import com.logicalbias.dropwizard.testing.extension.context.DropwizardTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -22,7 +25,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @RequiredArgsConstructor
 public class ApplicationTestClientTest {
 
+    private final DropwizardAppExtension<ApplicationConfiguration> appExtension;
+    private final ApplicationConfiguration configuration;
     private final TestClient client;
+
+    @Test
+    void testExtensionSupportedParameters() {
+        assertNotNull(appExtension);
+        assertNotNull(configuration);
+        assertNotNull(client);
+    }
 
     @Test
     void testQueryParams() {

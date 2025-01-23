@@ -118,7 +118,7 @@ class TestContextManager {
     <T> T getBean(Class<T> rawType, Type parameterizedType) {
         var appExtension = initialize();
 
-        if (parameterizedType == DropwizardAppExtension.class) {
+        if (rawType == DropwizardAppExtension.class) {
             return (T) appExtension;
         }
 
