@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.logicalbias</groupId>
         <artifactId>dropwizard-testing-project</artifactId>
-        <version>0.2.5</version>
+        <version>0.2.6-SNAPSHOT</version>
     </parent>
 
     <name>Dropwizard Integration Testing Parent</name>
@@ -24,7 +24,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- dependency versions -->
-        <dropwizard-testing.version>0.2.5</dropwizard-testing.version>
+        <dropwizard-testing.version>0.2.6-SNAPSHOT</dropwizard-testing.version>
         <dropwizard.version>4.0.1</dropwizard.version>
         <spring-kafka.version>3.2.0</spring-kafka.version>
         <dynamodb-local.version>2.5.3</dynamodb-local.version>
