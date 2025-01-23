@@ -9,13 +9,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayDeque;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -87,6 +85,10 @@ class TestContextManager {
         }
     }
 
+    void afterConstructor(Object testInstance) {
+        mockContext.injectTestInstanceMocks(testInstance, this::getBean);
+    }
+
     void beforeEach() throws Exception {
         initialize().before();
     }
@@ -113,20 +115,24 @@ class TestContextManager {
      * Retrieves the primary bean for the specified class type from the DI context.
      */
     @SuppressWarnings("unchecked")
-    <T> T getBean(Class<T> classType) {
+    <T> T getBean(Class<T> rawType, Type parameterizedType) {
         var appExtension = initialize();
 
-        if (classType == DropwizardAppExtension.class) {
+        if (parameterizedType == DropwizardAppExtension.class) {
             return (T) appExtension;
+        }
+
+        if (Configuration.class.isAssignableFrom(rawType)) {
+            return (T) appExtension.getConfiguration();
         }
 
         var environment = appExtension.getEnvironment();
         if (environment.getJerseyServletContainer() instanceof ServletContainer) {
             var container = (ServletContainer) environment.getJerseyServletContainer();
             var context = container.getApplicationHandler().getInjectionManager();
-            var bean = context.getInstance(classType);
+            var bean = context.getInstance(parameterizedType);
             if (bean != null) {
-                return bean;
+                return (T) bean;
             }
 
             // If no type was registered against this specific interface, we're going to do something dropwizard
@@ -136,10 +142,10 @@ class TestContextManager {
             // TODO This still doesn't work quite correctly because context.getInstance() still requires a single type bound to the supertype ...
             // otherwise, only the first type will be returned... Might have to get more clever and return the list of types given the interface
             // and scan through and find an exact class match.
-            return buildClassInheritanceTree(classType).stream()
+            return buildClassInheritanceTree(rawType).stream()
                     .map(context::getInstance)
-                    .filter(classType::isInstance)
-                    .map(classType::cast)
+                    .filter(rawType::isInstance)
+                    .map(rawType::cast)
                     .findFirst()
                     .orElse(null);
         }

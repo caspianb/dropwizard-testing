@@ -15,10 +15,13 @@ import java.lang.annotation.Target;
  * test class.
  * </p>
  * <p>
- * Currently, all mocks must be defined at the class level. The mock will be injected into the test constructor.
+ * This annotation can be placed at either the class or field level. When placed at the class level (or if the annotated field
+ * is marked final) the user must inject the mocks into the test constructor.
+ * If the @MockBean annotation is placed on a field that is not final, the test extension will automatically set the field after
+ * the test class is instantiated.
  * </p>
  */
-@Target(ElementType.TYPE)
+@Target({ ElementType.TYPE, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(MockBeans.class)
 @Documented
@@ -26,9 +29,12 @@ import java.lang.annotation.Target;
 public @interface MockBean {
 
     /**
+     * The type of mock to inject. This is required when used on the class level. Ignored when used on a class property.
+     */
+    Class<?>[] value() default {};
+
+    /**
      * The name of the mock. This is ignored if more than one type is mocked in a single {@link MockBean} declaration.
      */
     String name() default "";
-
-    Class<?>[] value();
 }

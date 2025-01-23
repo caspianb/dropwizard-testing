@@ -1,11 +1,15 @@
 package com.logicalbias.dropwizard.testing.extension.utils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import org.glassfish.hk2.api.TypeLiteral;
+import org.glassfish.hk2.utilities.reflection.ParameterizedTypeImpl;
 
 public final class TestHelpers {
 
@@ -83,5 +87,28 @@ public final class TestHelpers {
         }
 
         return List.copyOf(inheritedTypes);
+    }
+
+    public static <T> TypeLiteral<T> buildTypeLiteral(Class<T> rawType, Type[] typeArguments) {
+        try {
+            var parameterizedType = new ParameterizedTypeImpl(rawType, typeArguments);
+            var typeLiteral = new TypeLiteral<T>() {
+            };
+
+            // Terrible reflective hacks to create the appropriate TypeLiteral
+            // But glassfish doesn't really provide any better options here
+            var typeField = TypeLiteral.class.getDeclaredField("type");
+            typeField.setAccessible(true);
+            typeField.set(typeLiteral, parameterizedType);
+
+            var rawTypeField = TypeLiteral.class.getDeclaredField("rawType");
+            rawTypeField.setAccessible(true);
+            rawTypeField.set(typeLiteral, rawType);
+
+            return typeLiteral;
+        }
+        catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

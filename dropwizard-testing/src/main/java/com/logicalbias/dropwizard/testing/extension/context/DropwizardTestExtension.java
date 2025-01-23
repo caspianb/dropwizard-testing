@@ -1,6 +1,5 @@
 package com.logicalbias.dropwizard.testing.extension.context;
 
-import io.dropwizard.core.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -10,17 +9,24 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 
 import com.logicalbias.dropwizard.testing.extension.client.TestClient;
 
 @Slf4j
 class DropwizardTestExtension implements
         ParameterResolver,
+        TestInstancePostProcessor,
         BeforeEachCallback,
         AfterEachCallback,
         AfterAllCallback {
 
     static final Namespace NAMESPACE = Namespace.create(DropwizardTestExtension.class);
+
+    @Override
+    public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
+        testContextManager(context).afterConstructor(testInstance);
+    }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
@@ -40,33 +46,27 @@ class DropwizardTestExtension implements
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         var testContext = testContextManager(extensionContext);
-        var paramType = parameterContext.getParameter().getType();
+        var rawType = parameterContext.getParameter().getType();
 
-        if (paramType == TestClient.class) {
+        if (rawType == TestClient.class) {
             return true;
         }
 
-        if (Configuration.class.isAssignableFrom(paramType)) {
-            return true;
-        }
-
-        return testContext.getBean(paramType) != null;
+        var parameterizedType = parameterContext.getParameter().getParameterizedType();
+        return testContext.getBean(rawType, parameterizedType) != null;
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         var testContext = testContextManager(extensionContext);
-        var paramType = parameterContext.getParameter().getType();
+        var rawType = parameterContext.getParameter().getType();
 
-        if (paramType == TestClient.class) {
+        if (rawType == TestClient.class) {
             return getTestClient(extensionContext);
         }
 
-        if (Configuration.class.isAssignableFrom(paramType)) {
-            return testContext.getAppExtension().getConfiguration();
-        }
-
-        return testContext.getBean(paramType);
+        var parameterizedType = parameterContext.getParameter().getParameterizedType();
+        return testContext.getBean(rawType, parameterizedType);
     }
 
     private static TestClient getTestClient(ExtensionContext context) {

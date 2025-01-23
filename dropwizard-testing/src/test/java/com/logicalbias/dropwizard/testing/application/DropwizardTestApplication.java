@@ -6,8 +6,13 @@ import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import jakarta.inject.Singleton;
 
+import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import com.codahale.metrics.health.HealthCheck;
+import com.logicalbias.dropwizard.testing.application.generic.GenericService;
+import com.logicalbias.dropwizard.testing.application.generic.NumberService;
+import com.logicalbias.dropwizard.testing.application.generic.StringService;
 import com.logicalbias.dropwizard.testing.application.widgets.WidgetResource;
 import com.logicalbias.dropwizard.testing.application.widgets.WidgetService;
 
@@ -42,12 +47,39 @@ public class DropwizardTestApplication extends Application<ApplicationConfigurat
     public void run(ApplicationConfiguration configuration, Environment environment) {
         this.name = configuration.getName();
 
+        environment.healthChecks().register("health-check", new ApplicationHealthCheck());
+
         environment.jersey().register(WidgetResource.class);
-        environment.jersey().register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-                bindAsContract(WidgetService.class).in(Singleton.class);
-            }
-        });
+        environment.jersey().register(ApplicationBinder.class);
+    }
+
+    static class ApplicationBinder extends AbstractBinder {
+
+        @Override
+        protected void configure() {
+            bindAsContract(WidgetService.class).in(Singleton.class);
+
+            bindGenericServices();
+        }
+
+        void bindGenericServices() {
+            bindAsContract(StringService.class)
+                    .in(Singleton.class)
+                    .to(new TypeLiteral<GenericService<String>>() {
+                    });
+
+            bindAsContract(NumberService.class)
+                    .in(Singleton.class)
+                    .to(new TypeLiteral<GenericService<Number>>() {
+                    });
+        }
+    }
+
+    static class ApplicationHealthCheck extends HealthCheck {
+
+        @Override
+        protected Result check() throws Exception {
+            return Result.healthy();
+        }
     }
 }

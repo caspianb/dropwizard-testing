@@ -9,7 +9,7 @@ A simple integration test framework built around [Dropwizard Testing](https://gi
 * [TestClient](#testclient)
 * [Mocking Dependencies](#mocking-dependencies)
 * Additional Modules
-    * [DynamoDb Testing](dropwizard-testing-dynamo/)
+    * [DynamoDb Testing](dropwizard-testing-dynamo/README.md)
 
 # Getting Started
 
@@ -28,10 +28,10 @@ overhead.
 
 ```yaml
 <dependency>
-  <groupId>com.logicalbias</groupId>
-  <artifactId>dropwizard-testing</artifactId>
-  <version>0.2.3</version>
-  <scope>test</scope>
+<groupId>com.logicalbias</groupId>
+<artifactId>dropwizard-testing</artifactId>
+<version>0.2.5</version>
+<scope>test</scope>
 </dependency>
 ```
 
@@ -39,7 +39,7 @@ overhead.
 
 ```groovy
 dependencies {
-    testImplementation 'com.logicalbias:dropwizard-testing:0.2.3'
+    testImplementation 'com.logicalbias:dropwizard-testing:0.2.5'
 }
 ```
 
@@ -207,6 +207,37 @@ class OrderResourceTest {
                 .andReturn(OrderDto.class);
 
         // Assert against orderDto returned
+    }
+}
+```
+
+You can also use `@MockBean` at the field level. This is required when mocking generic types. All `@MockBean` fields will be provided via the test constructor,
+but non-final fields that remain `null` will be set immediately after the test constructor is invoked by the test extension.
+
+```java
+
+@DropwizardTest(value = MyApp.class, configFile = "my-app-config.yaml", useResourceFilePath = true)
+@RequiredArgsConstructor
+class OrderResourceTest {
+
+    /**
+     * The test must set this field via the test constructor.
+     */
+    @MockBean
+    private final GenericService<SomeTypeA> genericServiceA;
+
+    /**
+     * The test may set this field via the test constructor; if it is not set
+     * after the test instance is initialized, it will be automatically populated.
+     */
+    @MockBean
+    private GenericService<SomeTypeB> genericServiceB;
+
+    @Test
+    void OrderResourceTest() {
+        Mockito.doReturn(someTypeA)
+                .when(genericServiceA)
+                .process();
     }
 }
 ```

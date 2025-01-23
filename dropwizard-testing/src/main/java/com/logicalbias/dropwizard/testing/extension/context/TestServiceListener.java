@@ -7,10 +7,14 @@ import jakarta.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.Type;
+
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.junit.platform.commons.support.AnnotationSupport;
 import org.jvnet.hk2.annotations.ContractsProvided;
 import org.jvnet.hk2.annotations.Service;
+
+import static com.logicalbias.dropwizard.testing.extension.utils.TestHelpers.buildTypeLiteral;
 
 /**
  * ServiceListener will run before the target application 'run' method is invoked on service startup. This listener
@@ -72,18 +76,26 @@ class TestServiceListener<C extends Configuration> extends DropwizardAppExtensio
 
         @SuppressWarnings("unchecked")
         private <T> void bind(MockContext.MockDefinition mockDefinition, T mock) {
-            bind((Class<T>) mockDefinition.type(), mockDefinition.name(), mock);
+            bind((Class<T>) mockDefinition.type(), mockDefinition.typeArguments(), mockDefinition.name(), mock);
         }
 
         private <T> void bind(DependencyContext.DependencyInfo<T> dependencyInfo) {
-            bind(dependencyInfo.classType(), dependencyInfo.name(), dependencyInfo.instance());
+            bind(dependencyInfo.classType(), null, dependencyInfo.name(), dependencyInfo.instance());
         }
 
-        private <T> void bind(Class<T> type, String name, T instance) {
-            bind(instance)
-                    .to(type)
-                    .named(name == null || name.isBlank() ? null : name)
-                    .ranked(Integer.MAX_VALUE);
+        private <T> void bind(Class<T> type, Type[] typeArguments, String name, T instance) {
+            if (typeArguments == null || typeArguments.length == 0) {
+                bind(instance)
+                        .to(type)
+                        .named(name == null || name.isBlank() ? null : name)
+                        .ranked(Integer.MAX_VALUE);
+            }
+            else {
+                bind(instance)
+                        .to(buildTypeLiteral(type, typeArguments))
+                        .named(name == null || name.isBlank() ? null : name)
+                        .ranked(Integer.MAX_VALUE);
+            }
         }
     }
 }
