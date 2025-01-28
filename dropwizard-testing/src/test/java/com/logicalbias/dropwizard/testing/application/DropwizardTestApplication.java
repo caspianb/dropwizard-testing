@@ -1,10 +1,11 @@
 package com.logicalbias.dropwizard.testing.application;
 
+import io.dropwizard.Application;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
-import io.dropwizard.core.Application;
-import io.dropwizard.core.setup.Bootstrap;
-import io.dropwizard.core.setup.Environment;
-import jakarta.inject.Singleton;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+
+import javax.inject.Singleton;
 
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;

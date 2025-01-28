@@ -1,9 +1,10 @@
 package com.logicalbias.dropwizard.testing;
 
-import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
+
+import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

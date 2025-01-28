@@ -1,6 +1,6 @@
 package com.logicalbias.dropwizard.testing.application;
 
-import io.dropwizard.core.Configuration;
+import io.dropwizard.Configuration;
 import lombok.Getter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

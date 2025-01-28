@@ -1,7 +1,7 @@
 package com.logicalbias.dropwizard.testing.extension.context;
 
-import io.dropwizard.core.Application;
-import io.dropwizard.core.Configuration;
+import io.dropwizard.Application;
+import io.dropwizard.Configuration;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -42,19 +42,5 @@ public @interface DropwizardTest {
      * An array of key=value property overrides to apply to the test environment.
      */
     String[] properties() default {};
-
-    WebEnvironment webEnvironment() default WebEnvironment.DEFAULT;
-
-    enum WebEnvironment {
-        /**
-         * Starts the dropwizard test application running on the configured port.
-         */
-        DEFAULT,
-
-        /**
-         * Starts the dropwizard test application running on a random port.
-         */
-        RANDOM
-    }
 
 }

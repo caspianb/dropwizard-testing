@@ -1,15 +1,16 @@
 package com.logicalbias.dropwizard.testing;
 
-import jakarta.inject.Singleton;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Response;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
+
+import javax.inject.Singleton;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
@@ -57,22 +58,21 @@ public class ImportBeanExtensionTest {
     @RepeatedTest(5)
     void testClientHeadersAndResponse() {
         var value = UUID.randomUUID().toString();
-        try (var response = testClient.get("tests")
+        var response = testClient.get("tests")
                 .header("another-header", value)
                 .expectStatus(200)
-                .andReturnResponse()) {
+                .andReturnResponse();
 
-            var headers = response.getHeaders();
-            var responseStr = response.readEntity(String.class);
+        var headers = response.getHeaders();
+        var responseStr = response.readEntity(String.class);
 
-            assertEquals(testResource.getTestValue(), responseStr);
+        assertEquals(testResource.getTestValue(), responseStr);
 
-            assertEquals(1, headers.get("test-header").size());
-            assertEquals(testHeaderValue, headers.getFirst("test-header"));
+        assertEquals(1, headers.get("test-header").size());
+        assertEquals(testHeaderValue, headers.getFirst("test-header"));
 
-            assertEquals(1, headers.get("another-header").size());
-            assertEquals(value, headers.getFirst("another-header"));
-        }
+        assertEquals(1, headers.get("another-header").size());
+        assertEquals(value, headers.getFirst("another-header"));
     }
 
     @Data

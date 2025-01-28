@@ -1,11 +1,5 @@
 package com.logicalbias.dropwizard.testing.extension.client;
 
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.GenericType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +8,13 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.Assertions;
 
@@ -76,8 +77,7 @@ public class RequestBuilder {
     }
 
     public void andReturn() {
-        try (var response = callAndGetResponse()) {
-        }
+        callAndGetResponse();
     }
 
     @SuppressWarnings("unchecked")
@@ -87,27 +87,23 @@ public class RequestBuilder {
             return (T) callAndGetResponse();
         }
 
-        try (var response = callAndGetResponse()) {
-            return response.readEntity(responseType);
-        }
+        var response = callAndGetResponse();
+        return response.readEntity(responseType);
     }
 
     public <T> T andReturn(GenericType<T> responseType) {
-        try (var response = callAndGetResponse()) {
-            return response.readEntity(responseType);
-        }
+        var response = callAndGetResponse();
+        return response.readEntity(responseType);
     }
 
     public <T> T andReturn(Function<Response, T> function) {
-        try (var response = callAndGetResponse()) {
-            return function.apply(response);
-        }
+        var response = callAndGetResponse();
+        return function.apply(response);
     }
 
     public void andConsumeResponse(Consumer<Response> consumer) {
-        try (var response = callAndGetResponse()) {
-            consumer.accept(response);
-        }
+        var response = callAndGetResponse();
+        consumer.accept(response);
     }
 
     public Response andReturnResponse() {

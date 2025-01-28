@@ -1,13 +1,14 @@
 package com.logicalbias.dropwizard.testing.extension.context;
 
-import io.dropwizard.core.Configuration;
-import io.dropwizard.core.setup.Environment;
+import io.dropwizard.Configuration;
+import io.dropwizard.setup.Environment;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
-import jakarta.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Type;
+
+import javax.inject.Singleton;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.junit.platform.commons.support.AnnotationSupport;

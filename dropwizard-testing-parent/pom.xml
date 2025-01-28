@@ -25,7 +25,8 @@
 
         <!-- dependency versions -->
         <dropwizard-testing.version>0.2.7-SNAPSHOT</dropwizard-testing.version>
-        <dropwizard.version>4.0.1</dropwizard.version>
+        <dropwizard.version>1.3.29</dropwizard.version>
+        <mockito.version>3.7.0</mockito.version>
         <spring-kafka.version>3.2.0</spring-kafka.version>
         <dynamodb-local.version>2.5.3</dynamodb-local.version>
         <testcontainers.version>1.20.4</testcontainers.version>
@@ -44,7 +45,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.dropwizard</groupId>
-                <artifactId>dropwizard-dependencies</artifactId>
+                <artifactId>dropwizard-bom</artifactId>
                 <version>${dropwizard.version}</version>
                 <type>pom</type>
                 <scope>import</scope>

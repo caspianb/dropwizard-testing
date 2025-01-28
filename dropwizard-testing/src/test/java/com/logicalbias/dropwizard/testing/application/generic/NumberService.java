@@ -1,8 +1,9 @@
 package com.logicalbias.dropwizard.testing.application.generic;
 
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Inject;
 
 import com.logicalbias.dropwizard.testing.application.widgets.WidgetService;
 

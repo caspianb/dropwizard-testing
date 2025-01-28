@@ -1,13 +1,14 @@
 package com.logicalbias.dropwizard.testing.extension.client;
 
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.core.GenericType;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.List;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 @Getter
 public class TestClient {

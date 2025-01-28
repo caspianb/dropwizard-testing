@@ -1,7 +1,7 @@
 package com.logicalbias.dropwizard.testing.extension.context;
 
-import io.dropwizard.core.Application;
-import io.dropwizard.core.Configuration;
+import io.dropwizard.Application;
+import io.dropwizard.Configuration;
 import io.dropwizard.testing.ConfigOverride;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
@@ -77,7 +77,7 @@ class TestContextManager {
             appExtension = createDropwizardAppExtension(context, configOverrides)
                     .addListener(new TestServiceListener<>(this));
 
-            appExtension.beforeAll(context);
+            appExtension.before();
             return appExtension;
         }
         catch (Exception e) {
@@ -89,7 +89,7 @@ class TestContextManager {
         mockContext.injectTestInstanceMocks(testInstance, this::getBean);
     }
 
-    void beforeEach() throws Exception {
+    void beforeEach() {
         initialize().before();
     }
 
@@ -100,7 +100,7 @@ class TestContextManager {
 
     void afterAll() {
         try {
-            appExtension.afterAll(context);
+            appExtension.after();
         }
         finally {
             getStore(context).remove(context.getRequiredTestClass());
@@ -129,8 +129,8 @@ class TestContextManager {
         var environment = appExtension.getEnvironment();
         if (environment.getJerseyServletContainer() instanceof ServletContainer) {
             var container = (ServletContainer) environment.getJerseyServletContainer();
-            var context = container.getApplicationHandler().getInjectionManager();
-            var bean = context.getInstance(parameterizedType);
+            var context = container.getApplicationHandler().getServiceLocator();
+            var bean = context.getService(parameterizedType);
             if (bean != null) {
                 return (T) bean;
             }
@@ -143,7 +143,7 @@ class TestContextManager {
             // otherwise, only the first type will be returned... Might have to get more clever and return the list of types given the interface
             // and scan through and find an exact class match.
             return buildClassInheritanceTree(rawType).stream()
-                    .map(context::getInstance)
+                    .map(context::getService)
                     .filter(rawType::isInstance)
                     .map(rawType::cast)
                     .findFirst()
@@ -171,10 +171,6 @@ class TestContextManager {
         var applicationClass = (Class<? extends Application<C>>) dropwizardTest.value();
         var configFile = getConfigFile(dropwizardTest);
         log.info("Initializing @DropwizardTest application context [configFile={}].", configFile);
-
-        if (dropwizardTest.webEnvironment() == DropwizardTest.WebEnvironment.RANDOM) {
-            configOverrides.add(ConfigOverride.randomPorts());
-        }
 
         configOverrides.addAll(getPropertyOverrides(testClass, dropwizardTest));
         return new DropwizardAppExtension<>(applicationClass, configFile, configOverrides.toArray(ConfigOverride[]::new));
