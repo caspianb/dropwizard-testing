@@ -51,10 +51,10 @@ public class DropwizardTestApplication extends Application<ApplicationConfigurat
         environment.healthChecks().register("health-check", new ApplicationHealthCheck());
 
         environment.jersey().register(WidgetResource.class);
-        environment.jersey().register(ApplicationBinder.class);
+        environment.jersey().register(new ApplicationBinder());
     }
 
-    static class ApplicationBinder extends AbstractBinder {
+    public static class ApplicationBinder extends AbstractBinder {
 
         @Override
         protected void configure() {
@@ -65,14 +65,14 @@ public class DropwizardTestApplication extends Application<ApplicationConfigurat
 
         void bindGenericServices() {
             bindAsContract(StringService.class)
-                    .in(Singleton.class)
                     .to(new TypeLiteral<GenericService<String>>() {
-                    });
+                    })
+                    .in(Singleton.class);
 
             bindAsContract(NumberService.class)
-                    .in(Singleton.class)
                     .to(new TypeLiteral<GenericService<Number>>() {
-                    });
+                    })
+                    .in(Singleton.class);
         }
     }
 
