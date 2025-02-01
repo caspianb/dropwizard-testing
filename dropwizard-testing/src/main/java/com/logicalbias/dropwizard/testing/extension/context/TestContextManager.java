@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
@@ -88,7 +89,8 @@ class TestContextManager {
     }
 
     void afterConstructor(Object testInstance) {
-        mockContext.injectTestInstanceMocks(testInstance, this::getBean);
+        mockContext.injectTestInstanceMocks(testInstance,
+                (type, parameterizedType) -> getBean(type, parameterizedType, null));
     }
 
     void beforeEach() throws Exception {
@@ -117,7 +119,7 @@ class TestContextManager {
      * Retrieves the primary bean for the specified class type from the DI context.
      */
     @SuppressWarnings("unchecked")
-    <T> T getBean(Class<T> rawType, Type parameterizedType) {
+    <T> T getBean(Class<T> rawType, Type parameterizedType, String beanName) {
         var appExtension = initialize();
 
         if (rawType == DropwizardAppExtension.class) {
@@ -128,28 +130,33 @@ class TestContextManager {
             return (T) appExtension.getConfiguration();
         }
 
+        var serviceLocator = getServiceLocator(appExtension);
+        var bean = serviceLocator.getService(parameterizedType, beanName);
+        if (bean != null) {
+            return (T) bean;
+        }
+
+        // If no type was registered against this specific interface, we're going to do something dropwizard
+        // doesn't do. Scan up from the type and try to find some other superclass or interface it might've been
+        // registered under.
+
+        // TODO This still doesn't work quite correctly because context.getInstance() still requires a single type bound to the supertype ...
+        // otherwise, only the first type will be returned... Might have to get more clever and return the list of types given the interface
+        // and scan through and find an exact class match.
+        return buildClassInheritanceTree(rawType).stream()
+                .map(type -> serviceLocator.getService(type, beanName))
+                .filter(rawType::isInstance)
+                .map(rawType::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private ServiceLocator getServiceLocator(DropwizardAppExtension<?> appExtension) {
         var environment = appExtension.getEnvironment();
         if (environment.getJerseyServletContainer() instanceof ServletContainer) {
             var container = (ServletContainer) environment.getJerseyServletContainer();
             var context = container.getApplicationHandler().getInjectionManager();
-            var bean = context.getInstance(parameterizedType);
-            if (bean != null) {
-                return (T) bean;
-            }
-
-            // If no type was registered against this specific interface, we're going to do something dropwizard
-            // doesn't do. Scan up from the type and try to find some other superclass or interface it might've been
-            // registered under.
-
-            // TODO This still doesn't work quite correctly because context.getInstance() still requires a single type bound to the supertype ...
-            // otherwise, only the first type will be returned... Might have to get more clever and return the list of types given the interface
-            // and scan through and find an exact class match.
-            return buildClassInheritanceTree(rawType).stream()
-                    .map(context::getInstance)
-                    .filter(rawType::isInstance)
-                    .map(rawType::cast)
-                    .findFirst()
-                    .orElse(null);
+            return context.getInstance(ServiceLocator.class);
         }
 
         throw new IllegalStateException("Servlet container is not of type " + ServletContainer.class.getName());

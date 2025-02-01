@@ -1,5 +1,6 @@
 package com.logicalbias.dropwizard.testing.extension.context;
 
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -24,7 +25,7 @@ class DropwizardTestExtension implements
     static final Namespace NAMESPACE = Namespace.create(DropwizardTestExtension.class);
 
     @Override
-    public void postProcessTestInstance(Object testInstance, ExtensionContext context) throws Exception {
+    public void postProcessTestInstance(Object testInstance, ExtensionContext context) {
         testContextManager(context).afterConstructor(testInstance);
     }
 
@@ -53,7 +54,9 @@ class DropwizardTestExtension implements
         }
 
         var parameterizedType = parameterContext.getParameter().getParameterizedType();
-        return testContext.getBean(rawType, parameterizedType) != null;
+        var beanName = parameterContext.findAnnotation(Named.class).map(Named::value).orElse(null);
+
+        return testContext.getBean(rawType, parameterizedType, beanName) != null;
     }
 
     @Override
@@ -66,7 +69,9 @@ class DropwizardTestExtension implements
         }
 
         var parameterizedType = parameterContext.getParameter().getParameterizedType();
-        return testContext.getBean(rawType, parameterizedType);
+        var beanName = parameterContext.findAnnotation(Named.class).map(Named::value).orElse(null);
+
+        return testContext.getBean(rawType, parameterizedType, beanName);
     }
 
     private static TestClient getTestClient(ExtensionContext context) {
