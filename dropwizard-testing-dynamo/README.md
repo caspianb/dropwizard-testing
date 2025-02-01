@@ -10,7 +10,7 @@
 <dependency>
   <groupId>com.logicalbias</groupId>
   <artifactId>dropwizard-testing-dynamo</artifactId>
-  <version>0.2.3</version>
+  <version>0.2.7</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -19,7 +19,7 @@
 
 ```groovy
 dependencies {
-    testImplementation 'com.logicalbias:dropwizard-testing-dynamo:0.2.3'
+    testImplementation 'com.logicalbias:dropwizard-testing-dynamo:0.2.7'
 }
 ```
 
@@ -27,7 +27,7 @@ dependencies {
 
 Using this library is easy. Simply add `@DynamoDbTest` annotation to your class. This will (by default) spin up an in-memory dynamo database.
 Alternatively, the annotation environment property is provided `@DynamoDbTest(environment = Environment.DOCKER)` allowing control to spin up a full
-docker container (this requires the [Test Containers](https://testcontainers.com/) dependency to be added to yyour project.
+docker container (this requires the [Test Containers](https://testcontainers.com/) dependency to be added to your project.
 
 ```java
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;

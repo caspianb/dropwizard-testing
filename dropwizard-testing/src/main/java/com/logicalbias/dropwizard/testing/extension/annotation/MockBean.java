@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * <p>
  * Defines what classes will be mocked within the {@link com.logicalbias.dropwizard.testing.extension.context.DropwizardTest}
- * application context. The mocks will be automatically generated and injected into the hk2 context for duration of the
+ * application context. The mocks will be automatically generated and injected into the HK2 context for duration of the
  * test class.
  * </p>
  * <p>

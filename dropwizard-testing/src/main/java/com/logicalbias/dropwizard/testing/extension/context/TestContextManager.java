@@ -38,6 +38,7 @@ class TestContextManager {
     private final ExtensionContext context;
     private final DependencyContext dependencyContext;
     private final MockContext mockContext;
+    private final ImportContext importContext;
     private final List<ConfigOverride> configOverrides;
 
     private DropwizardAppExtension<?> appExtension;
@@ -56,6 +57,7 @@ class TestContextManager {
         this.context = context;
         this.dependencyContext = new DependencyContext();
         this.mockContext = new MockContext(context);
+        this.importContext = new ImportContext(context);
         this.configOverrides = new ArrayList<>();
     }
 
