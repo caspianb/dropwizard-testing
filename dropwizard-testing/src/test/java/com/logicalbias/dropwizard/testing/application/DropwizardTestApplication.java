@@ -63,22 +63,24 @@ public class DropwizardTestApplication extends Application<ApplicationConfigurat
         }
 
         void bindGenericServices() {
-            bindAsContract(StringService.class)
-                    .in(Singleton.class)
+            bind(StringService.class)
+                    .to(StringService.class)
                     .to(new TypeLiteral<GenericService<String>>() {
-                    });
+                    })
+                    .in(Singleton.class);
 
-            bindAsContract(NumberService.class)
-                    .in(Singleton.class)
+            bind(NumberService.class)
+                    .to(NumberService.class)
                     .to(new TypeLiteral<GenericService<Number>>() {
-                    });
+                    })
+                    .in(Singleton.class);
         }
     }
 
     static class ApplicationHealthCheck extends HealthCheck {
 
         @Override
-        protected Result check() throws Exception {
+        protected Result check() {
             return Result.healthy();
         }
     }

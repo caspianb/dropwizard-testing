@@ -10,11 +10,7 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.Type;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
-import org.junit.platform.commons.support.AnnotationSupport;
-import org.jvnet.hk2.annotations.ContractsProvided;
-import org.jvnet.hk2.annotations.Service;
-
-import static com.logicalbias.dropwizard.testing.extension.utils.TestHelpers.buildTypeLiteral;
+import org.glassfish.hk2.utilities.binding.ServiceBindingBuilder;
 
 /**
  * ServiceListener will run before the target application 'run' method is invoked on service startup. This listener
@@ -29,9 +25,9 @@ class TestServiceListener<C extends Configuration> extends DropwizardAppExtensio
     @Override
     public void onRun(C configuration, Environment environment, DropwizardAppExtension<C> rule) {
         // First look for imported classes and register them directly as a jersey component
-        var context = testContextManager.getContext();
-        var importedClasses = ImportContext.getImportClassTypes(context);
-        importedClasses.forEach(environment.jersey()::register);
+        testContextManager.getImportContext().forEach(importDef -> {
+            environment.jersey().register(importDef.type());
+        });
 
         environment.jersey().register(new TestBinder(testContextManager));
     }
@@ -48,54 +44,39 @@ class TestServiceListener<C extends Configuration> extends DropwizardAppExtensio
             testContextManager.getMockContext().forEach(this::bind);
             testContextManager.getDependencyContext().forEach(this::bind);
 
-            bindImportedTypes();
-        }
-
-        private void bindImportedTypes() {
-            // Bind our imported classes into the DI context as well
-            var importedClasses = ImportContext.getImportClassTypes(testContextManager.getContext());
-            importedClasses.forEach(type -> {
-                var name = AnnotationSupport.findAnnotation(type, Service.class)
-                        .map(Service::name)
-                        .orElse(null);
-
-                var contractTypes = AnnotationSupport.findAnnotation(type, ContractsProvided.class)
-                        .map(ContractsProvided::value)
-                        .orElseGet(() -> new Class[0]);
-
-                // Bind type to itself as well as all additional provided contracts
-                var binding = bindAsContract(type);
-                for (var contractType : contractTypes) {
-                    binding = binding.to(contractType);
-                }
-                binding.named(name)
-                        .in(Singleton.class)
-                        .ranked(Integer.MAX_VALUE);
-            });
+            testContextManager.getImportContext().forEach(this::bind);
         }
 
         @SuppressWarnings("unchecked")
         private <T> void bind(MockContext.MockDefinition mockDefinition, T mock) {
-            bind((Class<T>) mockDefinition.type(), mockDefinition.typeArguments(), mockDefinition.name(), mock);
+            bind(mockDefinition.type(), mockDefinition.name(), mock);
+        }
+
+        private <T> void bind(ImportContext.ImportDefinition importDefinition) {
+            var type = importDefinition.type();
+            var name = importDefinition.name();
+            var contractTypes = importDefinition.contractsProvided();
+
+            // Bind type to itself as well as all additional provided contracts
+            var binding = bindAsContract(type);
+            for (var contractType : contractTypes) {
+                binding = binding.to(contractType);
+            }
+            binding.named(name)
+                    .in(Singleton.class)
+                    .ranked(Integer.MAX_VALUE);
         }
 
         private <T> void bind(DependencyContext.DependencyInfo<T> dependencyInfo) {
-            bind(dependencyInfo.classType(), null, dependencyInfo.name(), dependencyInfo.instance());
+            bind(dependencyInfo.classType(), dependencyInfo.name(), dependencyInfo.instance());
         }
 
-        private <T> void bind(Class<T> type, Type[] typeArguments, String name, T instance) {
-            if (typeArguments == null || typeArguments.length == 0) {
-                bind(instance)
-                        .to(type)
-                        .named(name == null || name.isBlank() ? null : name)
-                        .ranked(Integer.MAX_VALUE);
-            }
-            else {
-                bind(instance)
-                        .to(buildTypeLiteral(type, typeArguments))
-                        .named(name == null || name.isBlank() ? null : name)
-                        .ranked(Integer.MAX_VALUE);
-            }
+        @SuppressWarnings("unchecked")
+        private <T> void bind(Type type, String name, T instance) {
+            var binding = (ServiceBindingBuilder<T>) bind(instance);
+            binding.to(type)
+                    .named(name == null || name.isBlank() ? null : name)
+                    .ranked(Integer.MAX_VALUE);
         }
     }
 }

@@ -30,7 +30,7 @@ overhead.
 <dependency>
 <groupId>com.logicalbias</groupId>
 <artifactId>dropwizard-testing</artifactId>
-<version>0.2.6</version>
+<version>0.2.7</version>
 <scope>test</scope>
 </dependency>
 ```
@@ -39,7 +39,7 @@ overhead.
 
 ```groovy
 dependencies {
-    testImplementation 'com.logicalbias:dropwizard-testing:0.2.6'
+    testImplementation 'com.logicalbias:dropwizard-testing:0.2.7'
 }
 ```
 

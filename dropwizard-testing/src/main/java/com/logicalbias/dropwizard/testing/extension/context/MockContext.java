@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -78,9 +77,9 @@ class MockContext {
 
             for (var mockType : mockBean.value()) {
                 // Only use bean name definition if exactly one mock type is specified on the @MockBean annotation.
-                var name = mockBean.value().length == 1 ? mockBean.name() : null;
+                var name = mockBean.value().length <= 1 ? mockBean.name() : null;
                 var mock = Mockito.mock(mockType);
-                mocks.put(new MockDefinition(mockType, new Type[0], name), mock);
+                mocks.put(new MockDefinition(mockType, name), mock);
             }
         }
     }
@@ -91,10 +90,8 @@ class MockContext {
         for (var field : mockFields) {
             var mockBean = field.getAnnotation(MockBean.class);
             var name = mockBean.name();
-            var mockType = field.getType();
-            var typeArguments = getTypeArguments(field);
-            var mock = Mockito.mock(mockType);
-            mocks.put(new MockDefinition(mockType, typeArguments, name), mock);
+            var mock = Mockito.mock(field.getType());
+            mocks.put(new MockDefinition(field.getGenericType(), name), mock);
         }
     }
 
@@ -104,22 +101,12 @@ class MockContext {
                 .collect(Collectors.toList());
     }
 
-    private Type[] getTypeArguments(Field field) {
-        var type = field.getGenericType();
-        if (type instanceof ParameterizedType) {
-            return ((ParameterizedType) type).getActualTypeArguments();
-        }
-
-        return new Type[0];
-    }
-
     @Getter
     @Accessors(fluent = true)
     @EqualsAndHashCode
     @RequiredArgsConstructor
     static class MockDefinition {
-        private final Class<?> type;
-        private final Type[] typeArguments;
+        private final Type type;
         private final String name;
     }
 }
