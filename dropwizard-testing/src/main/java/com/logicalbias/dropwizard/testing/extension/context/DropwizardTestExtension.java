@@ -3,6 +3,8 @@ package com.logicalbias.dropwizard.testing.extension.context;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Type;
+
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -68,7 +70,7 @@ class DropwizardTestExtension implements
             return getTestClient(extensionContext);
         }
 
-        var parameterizedType = parameterContext.getParameter().getParameterizedType();
+        var parameterizedType = getParameterizedType(parameterContext);
         var beanName = parameterContext.findAnnotation(Named.class).map(Named::value).orElse(null);
 
         return testContext.getBean(rawType, parameterizedType, beanName);
@@ -91,5 +93,24 @@ class DropwizardTestExtension implements
 
     private static ExtensionContext.Store getStore(ExtensionContext context) {
         return context.getStore(NAMESPACE);
+    }
+
+    private static Type getParameterizedType(ParameterContext parameterContext) {
+        // We need to dive into the parameter arguments directly here in case it's generic
+        // Accessing a generic parameter type via Parameter::getParameterizedType doesn't seem
+        // to work properly unless compiled with Java21 (or 20?)
+        // var parameterizedType = parameterContext.getParameter().getParameterizedType();
+
+        var executable = parameterContext.getDeclaringExecutable();
+        var parameterTypes = executable.getGenericParameterTypes();
+
+        // Typically these values are identical (so indexOffset == 0)
+        // However, if the target class is a nested class (e.g. @Nested test) then
+        // the nested class constructor contains the parent class as an implicit parameter
+        // to the constructor injected at compile time ... so we need to account for this.
+        int indexOffset = executable.getParameterCount() - parameterTypes.length;
+        var index = parameterContext.getIndex() - indexOffset;
+
+        return parameterTypes[index];
     }
 }
