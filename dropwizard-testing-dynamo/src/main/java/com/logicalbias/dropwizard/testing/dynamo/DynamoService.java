@@ -43,7 +43,7 @@ interface DynamoService {
 
         DynamoEmbedded() {
             log.info("Starting embedded dynamoDb for testing.");
-            this.embeddedDb = DynamoDBEmbedded.create(true);
+            this.embeddedDb = DynamoDBEmbedded.create();
         }
 
         @Override
