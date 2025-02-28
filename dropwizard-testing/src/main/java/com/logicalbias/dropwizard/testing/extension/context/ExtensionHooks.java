@@ -8,8 +8,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * It provides hook points allowing dropwizard test extensions to:
  * </p>
  * <ul>
- * <li>extensions to add or override dependencies in the HK2 context</li>
- * <li>extensions to add or override properties in the running application</li>
+ * <li>add or override dependencies in the HK2 context</li>
+ * <li>add or override properties in the running application</li>
  * </ul>
  *
  * <pre>
