@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 /**
  * <p>
  * Defines what classes will be mocked within the {@link com.logicalbias.dropwizard.testing.extension.context.DropwizardTest}
- * application context. The mocks will be automatically generated and injected into the hk2 context for duration of the
+ * application context. The mocks will be automatically generated and injected into the HK2 context for duration of the
  * test class.
  * </p>
  * <p>
@@ -29,12 +29,13 @@ import java.lang.annotation.Target;
 public @interface MockBean {
 
     /**
-     * The type of mock to inject. This is required when used on the class level. Ignored when used on a class property.
+     * The type of mock to inject. This is required when used at the class level and
+     * ignored when used at the field level; field type is used directly.
      */
     Class<?>[] value() default {};
 
     /**
-     * The name of the mock. This is ignored if more than one type is mocked in a single {@link MockBean} declaration.
+     * The name of the mock. This is ignored if {@link MockBean#value} contains more than one value.
      */
     String name() default "";
 }
